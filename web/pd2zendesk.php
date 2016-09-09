@@ -48,7 +48,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
   //Update the Zendesk ticket when the incident is acknowledged or resolved.
   $url = "https://$zd_subdomain.zendesk.com/api/v2/tickets/$ticket_id.json";
 
-  $data = array('ticket'=>array('comment'=>array('public'=>'true','body'=>"This ticket has been $verb" . $action_message . " in PagerDuty.  To view the incident, go to $ticket_url.")));
+  $data = array('ticket'=>array('comment'=>array('public'=>'true','body'=>"This ticket has been $verb" . $action_message . " in PagerDuty.  To view the incident, go to $ticket_url.", 'author_id'=>'10885972567')));
   $data_json = json_encode($data);
 
   $status_code = http_request($url, $data_json, "PUT", "basic", $zd_username, $zd_api_token);
