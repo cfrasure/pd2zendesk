@@ -30,7 +30,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
       $status_code = http_request($url, $data_json, "DELETE", "basic", $zd_username, $zd_api_token);
       break;
     case "incident.acknowledge":
-      $verb = "acknowledged ";
+      $verb = "acknowledged";
       $acknowledger_array = $webhook->data->incident->acknowledgers;
       $acknowledgers = array();
       foreach ($acknowledger_array as $acknowledger) {
