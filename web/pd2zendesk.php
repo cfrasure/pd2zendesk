@@ -17,7 +17,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
   switch ($webhook_type) {
     case "incident.trigger":
       $verb = "triggered";
-      $public_comment = "false"
+      $public_comment = "false";
       $assigned_array = $webhook->data->incident->assigned_to;
       $assigned_users = array();
       foreach ($assigned_array as $assigned_user) {
@@ -32,7 +32,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
       break;
     case "incident.acknowledge":
       $verb = "acknowledged";
-      $public_comment = "true"
+      $public_comment = "true";
       $acknowledger_array = $webhook->data->incident->acknowledgers;
       $acknowledgers = array();
       foreach ($acknowledger_array as $acknowledger) {
@@ -42,7 +42,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
       break;
     case "incident.resolve":
       $verb = "resolved";
-      $public_comment = "true"
+      $public_comment = "true";
       $action_message = " by " . $webhook->data->incident->resolved_by_user->name;
       break;
     default:
