@@ -17,6 +17,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
   switch ($webhook_type) {
     case "incident.trigger":
       $verb = "triggered";
+      $public_comment = "false"
       $assigned_array = $webhook->data->incident->assigned_to;
       $assigned_users = array();
       foreach ($assigned_array as $assigned_user) {
@@ -31,6 +32,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
       break;
     case "incident.acknowledge":
       $verb = "acknowledged";
+      $public_comment = "true"
       $acknowledger_array = $webhook->data->incident->acknowledgers;
       $acknowledgers = array();
       foreach ($acknowledger_array as $acknowledger) {
@@ -40,6 +42,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
       break;
     case "incident.resolve":
       $verb = "resolved";
+      $public_comment = "true"
       $action_message = " by " . $webhook->data->incident->resolved_by_user->name;
       break;
     default:
@@ -48,7 +51,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
   //Update the Zendesk ticket when the incident is acknowledged or resolved.
   $url = "https://$zd_subdomain.zendesk.com/api/v2/tickets/$ticket_id.json";
 
-  $data = array('ticket'=>array('comment'=>array('public'=>'true','body'=>"This ticket has been $verb" . $action_message . " in PagerDuty.  To view the incident, go to $ticket_url.", 'author_id'=>'10885972567')));
+  $data = array('ticket'=>array('comment'=>array('public'=>$public_comment,'body'=>"This ticket has been $verb" . $action_message . " in PagerDuty.  To view the incident, go to $ticket_url.", 'author_id'=>'10885972567')));
   $data_json = json_encode($data);
 
   $status_code = http_request($url, $data_json, "PUT", "basic", $zd_username, $zd_api_token);
