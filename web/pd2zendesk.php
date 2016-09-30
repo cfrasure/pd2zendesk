@@ -18,6 +18,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
     case "incident.trigger":
       $verb = "triggered";
       $public_comment = "false";
+      $authid = 10885972567;
       $assigned_array = $webhook->data->incident->assigned_to;
       $assigned_users = array();
       foreach ($assigned_array as $assigned_user) {
@@ -34,7 +35,18 @@ if ($messages) foreach ($messages->messages as $webhook) {
       $verb = "acknowledged";
       $public_comment = "true";
       $acknowledger_array = $webhook->data->incident->acknowledgers;
+      $first_ack = $webhook->data->incident->acknowledgers;
+      $first_email = reset($first_ack);
+      $ack_email = $first_email->object->email;
+      error_log($ack_email);
       $acknowledgers = array();
+      $url = "https://$zd_subdomain.zendesk.com/api/v2/users/search.json?query=$ack_email";
+      $userid_raw = get_data($url, $zd_username, $zd_api_token);
+      $data_json = json_decode($userid_raw);
+      $first_user_array = $data_json->users;
+      $first_user = reset($first_user_array);
+      $authid = $first_user->id;
+      error_log($authid);
       foreach ($acknowledger_array as $acknowledger) {
         array_push($acknowledgers, $acknowledger->object->name);
       }
@@ -42,6 +54,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
       break;
     case "incident.resolve":
       $verb = "resolved";
+      $authid = 10885972567;
       $public_comment = "true";
       $action_message = " by " . $webhook->data->incident->resolved_by_user->name;
       break;
@@ -51,7 +64,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
   //Update the Zendesk ticket when the incident is acknowledged or resolved.
   $url = "https://$zd_subdomain.zendesk.com/api/v2/tickets/$ticket_id.json";
 
-  $data = array('ticket'=>array('comment'=>array('public'=>$public_comment,'body'=>"This ticket has been $verb" . $action_message . " in PagerDuty.  To view the incident, go to $ticket_url.", 'author_id'=>'10885972567')));
+  $data = array('ticket'=>array('comment'=>array('public'=>$public_comment,'body'=>"This ticket has been $verb" . $action_message . " in PagerDuty.  To view the incident, go to $ticket_url.", 'author_id'=>$authid)));
   $data_json = json_encode($data);
 
   $status_code = http_request($url, $data_json, "PUT", "basic", $zd_username, $zd_api_token);
@@ -83,5 +96,17 @@ function http_request($url, $data_json, $method, $auth_type, $username, $token) 
   $status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
   curl_close($ch);
   return $status_code;
+}
+function get_data($url, $username, $token) {
+	$ch = curl_init();
+	$timeout = 5;
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    curl_setopt($ch, CURLOPT_USERPWD, "$username/token:$token");
+	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+	$data = curl_exec($ch);
+	curl_close($ch);
+	return $data;
 }
 ?>
